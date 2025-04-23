@@ -23,10 +23,10 @@ jobs:
         echo "==> upgrade updated."
 
     - name: Checkout ImmortalWrt
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         repository: immortalwrt/immortalwrt
-        ref: 24.10.1
+        ref: v24.10.1
 
     - name: Update Feeds
       run: |
