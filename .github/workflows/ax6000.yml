@@ -128,7 +128,6 @@ jobs:
         CONFIG_PACKAGE_libubus-lua=y
         CONFIG_PACKAGE_rpcd=y
         CONFIG_PACKAGE_libuci=y
-        CONFIG_PACKAGE_uci=y
         CONFIG_PACKAGE_jansson=y
         CONFIG_PACKAGE_libubox=y
         CONFIG_PACKAGE_libblobmsg-json=y
@@ -151,7 +150,7 @@ jobs:
         CONFIG_PACKAGE_luci-i18n-attendedsysupgrade-zh-cn=y
         CONFIG_PACKAGE_luci-app-firewall=y
         CONFIG_PACKAGE_luci-i18n-firewall-zh-cn=y
-
+        
         EOF
         echo "==> config saved."
 
