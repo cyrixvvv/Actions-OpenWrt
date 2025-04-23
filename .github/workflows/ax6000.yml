@@ -1,0 +1,130 @@
+name: Build ImmortalWrt AX6000
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Compile AX6000 Firmware
+
+    container:
+      image: debian:11
+
+    steps:
+    - name: Install Dependencies
+      run: |
+        sudo apt update -y
+        sudo apt full-upgrade -y
+        sudo apt install -y ack antlr3 asciidoc autoconf automake autopoint binutils bison build-essential \
+          bzip2 ccache clang cmake cpio curl device-tree-compiler ecj fastjar flex gawk gettext gcc-multilib \
+          g++-multilib git gnutls-dev gperf haveged help2man intltool lib32gcc-s1 libc6-dev-i386 libelf-dev \
+          libglib2.0-dev libgmp3-dev libltdl-dev libmpc-dev libmpfr-dev libncurses-dev libpython3-dev \
+          libreadline-dev libssl-dev libtool libyaml-dev libz-dev lld llvm lrzsz mkisofs msmtp nano \
+          ninja-build p7zip p7zip-full patch pkgconf python3 python3-pip python3-ply python3-docutils \
+          python3-pyelftools qemu-utils re2c rsync scons squashfs-tools subversion swig texinfo uglifyjs \
+          upx-ucl unzip vim wget xmlto xxd zlib1g-dev zstd
+        echo "==> upgrade updated."
+
+    - name: Checkout ImmortalWrt
+      uses: actions/checkout@v3
+      with:
+        repository: immortalwrt/immortalwrt
+        ref: 24.10.1
+
+    - name: Update Feeds
+      run: |
+        ./scripts/feeds update -a
+        ./scripts/feeds install -a
+        echo "==> Feeds updated."
+
+    - name: Write .config
+      run: |
+        cat <<EOF > .config
+        CONFIG_TARGET_mediatek=y
+        CONFIG_TARGET_mediatek_mt7986=y
+        CONFIG_TARGET_mediatek_mt7986_DEVICE_xiaomi_redmi-router-ax6000=y
+
+        CONFIG_PACKAGE_autocore=y
+        CONFIG_PACKAGE_base-files=y
+        CONFIG_PACKAGE_block-mount=y
+        CONFIG_PACKAGE_bridger=y
+        CONFIG_PACKAGE_ca-bundle=y
+        CONFIG_PACKAGE_default-settings-chn=y
+        CONFIG_PACKAGE_dnsmasq-full=y
+        CONFIG_PACKAGE_dropbear=y
+        CONFIG_PACKAGE_firewall4=y
+        CONFIG_PACKAGE_fitblk=y
+        CONFIG_PACKAGE_fstools=y
+        CONFIG_PACKAGE_kmod-crypto-hw-safexcel=y
+        CONFIG_PACKAGE_kmod-gpio-button-hotplug=y
+        CONFIG_PACKAGE_kmod-leds-gpio=y
+        CONFIG_PACKAGE_kmod-leds-ws2812b=y
+        CONFIG_PACKAGE_kmod-nf-nathelper=y
+        CONFIG_PACKAGE_kmod-nf-nathelper-extra=y
+        CONFIG_PACKAGE_kmod-nft-offload=y
+        CONFIG_PACKAGE_kmod-phy-aquantia=y
+        CONFIG_PACKAGE_kmod-mt7915e=y
+        CONFIG_PACKAGE_kmod-mt7986-firmware=y
+        CONFIG_PACKAGE_mt7986-wo-firmware=y
+        CONFIG_PACKAGE_kmod-mediatek-hnat=y
+        CONFIG_PACKAGE_kmod-mtk-ppe=y
+        CONFIG_PACKAGE_libc=y
+        CONFIG_PACKAGE_libgcc=y
+        CONFIG_PACKAGE_libustream-openssl=y
+        CONFIG_PACKAGE_logd=y
+        CONFIG_PACKAGE_luci-app-package-manager=y
+        CONFIG_PACKAGE_luci-compat=y
+        CONFIG_PACKAGE_luci-lib-base=y
+        CONFIG_PACKAGE_luci-lib-ipkg=y
+        CONFIG_PACKAGE_luci-light=y
+        CONFIG_PACKAGE_mtd=y
+        CONFIG_PACKAGE_netifd=y
+        CONFIG_PACKAGE_nftables=y
+        CONFIG_PACKAGE_odhcp6c=y
+        CONFIG_PACKAGE_odhcpd-ipv6only=y
+        CONFIG_PACKAGE_opkg=y
+        CONFIG_PACKAGE_ppp=y
+        CONFIG_PACKAGE_ppp-mod-pppoe=y
+        CONFIG_PACKAGE_procd-ujail=y
+        CONFIG_PACKAGE_uboot-envtools=y
+        CONFIG_PACKAGE_uci=y
+        CONFIG_PACKAGE_uclient-fetch=y
+        CONFIG_PACKAGE_urandom-seed=y
+        CONFIG_PACKAGE_urngd=y
+        CONFIG_PACKAGE_wpad-openssl=y
+
+        CONFIG_PACKAGE_luci-app-zerotier=y
+        CONFIG_PACKAGE_luci-i18n-zerotier-zh-cn=y
+        CONFIG_PACKAGE_luci-app-wol=y
+        CONFIG_PACKAGE_luci-i18n-wol-zh-cn=y
+        CONFIG_PACKAGE_luci-app-upnp=y
+        CONFIG_PACKAGE_luci-i18n-upnp-zh-cn=y
+        CONFIG_PACKAGE_luci-app-attendedsysupgrade=y
+        CONFIG_PACKAGE_luci-i18n-attendedsysupgrade-zh-cn=y
+        CONFIG_PACKAGE_luci-app-homeproxy=y
+        CONFIG_PACKAGE_luci-i18n-homeproxy-zh-cn=y
+        CONFIG_PACKAGE_luci-i18n-package-manager-zh-cn=y
+        CONFIG_PACKAGE_luci-i18n-firewall-zh-cn=y
+        EOF
+        echo "==> config saved."
+
+    - name: Show Start of Download
+      run: |
+        echo "==> Step 3: Downloading Sources..."
+
+    - name: Download Sources
+      run: make defconfig && make download -j8
+
+    - name: Show Start of Compilation
+      run: |
+        echo "==> Step 4: Start Building..."
+        
+    - name: Compile
+      run: make -j$(nproc) || make -j1 V=s
+
+    - name: Upload Firmware
+      uses: actions/upload-artifact@v3
+      with:
+        name: AX6000-Firmware
+        path: bin/targets/
