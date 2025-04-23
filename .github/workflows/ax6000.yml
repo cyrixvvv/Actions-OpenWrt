@@ -125,7 +125,7 @@ jobs:
 
     - name: Upload Firmware
       if: success()
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@master
       with:
         name: AX6000-Firmware
         path: bin/targets/*/*
