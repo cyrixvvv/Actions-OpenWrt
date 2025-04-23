@@ -85,7 +85,6 @@ jobs:
         CONFIG_PACKAGE_ppp=y
         CONFIG_PACKAGE_ppp-mod-pppoe=y
         CONFIG_PACKAGE_procd-ujail=y
-        CONFIG_PACKAGE_uboot-envtools=y
         CONFIG_PACKAGE_uci=y
         CONFIG_PACKAGE_uclient-fetch=y
         CONFIG_PACKAGE_urandom-seed=y
